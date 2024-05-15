@@ -7,15 +7,9 @@ import {checkToken} from '../controllers/loginController'
 const router = express.Router();
 
 router.get('/user/:id', getUser);
-
-router.post(
-  '/addUser',
-  upload.single('image'),
-  validateRegistrationData,
-  addUser
-);
-
+router.post('/addUser',upload.single('image'),validateRegistrationData,addUser);
 router.get('/mee',verifyToken,checkToken,getMeeDetails);
 router.put("/userImage/:id", upload.single("image"), getUser);
 
 export default router;
+``

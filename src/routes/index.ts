@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import loginRoutes from './loginroutes';
 import userRoutes from './userRoutes'
-import commonRouted from '../routes/commonRoutes';
+import commonRouted from './commonRoutes';
 
 
 /**

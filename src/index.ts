@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 
-import { sequelize } from '../src/database/config/dbConfig';
+import { sequelize } from './database/config/dbConfig';
 import { initModel } from './database/sequelize/initModel';
 import {
   logger,
