@@ -1,91 +1,113 @@
-import jose from 'node-jose';
 
-const createTokens = async (email: any) => {
-  try {
-    const ks = {
-      keys: [
-        {
-          use: 'sig',
-          alg: 'RS256',
-          n: 'r54td3hTv87IwUNhdc-bYLIny4tBVcasvdSd7lbJILg58C4DJ0RJPczXd_rlfzzYGvgpt3Okf_anJd5aah196P3bqwVDdelcDYAhuajBzn40QjOBPefvdD5zSo18i7OtG7nhAhRSEGe6Pjzpck3wAogqYcDgkF1BzTsRB-DkxprsYhp5pmL5RnX-6EYP5t2m9jJ-_oP9v1yvZkT5UPb2IwOk5GDllRPbvp-aJW_RM18ITU3qIbkwSTs1gJGFWO7jwnxT0QBaFD8a8aev1tmR50ehK-Sz2ORtvuWBxbzTqXXL39qgNJaYwZyW-2040vvuZnaGribcxT83t3cJlQdMxw',
-          kid: 'acda360fb36cd15ff83af83e173f47ffc36d111c',
-          kty: 'RSA',
-          e: 'AQAB',
-        },
-        {
-          alg: 'RS256',
-          e: 'AQAB',
-          use: 'sig',
-          kid: '96971808796829a972e79a9d1a9fff11cd61b1e3',
-          kty: 'RSA',
-          n: 'vfBbH3bcgTzYXomo5hmimATzkEF0QIuhMYmwx0IrpdKT6M15b6KBVhZsPfwbRNoui3iBe8xLON2VHarDgXRzrHec6-oLx8Sh4R4B47MdASURoiIOBiSOiJ3BjKQexNXT4wO0ZLSEMTVt_h24fgIerASU6w2XQOeGb7bbgZnJX3a0NAjsfrxCeG0PacWK2TE2R00mZoeAYWtCuAsE-Xz0hkGqEsg7HqIMYeLjQ-NFkGBErGAi5Cd_k3_D7rv0IEdoB1GkJpIdMLqnI-MR_OxsQNZGpC12OaLXCqgkFAgW69QLAG3YMaTFgPi-Us1i2idc4SPADYijiPml---jCap9yw',
-        },
-      ],
-    };
+import jose from "node-jose";
+import { memoize } from "lodash";
+import { Request, Response, NextFunction } from 'express';
 
-    let keystore = jose.JWK.createKeyStore();
-    const result = await jose.JWK.asKeyStore(ks);
-    keystore = result;
-    let key = keystore.get('acda360fb36cd15ff83af83e173f47ffc36d111c'); // primary key we've to store in env
-    // Create a secret key using the properties from the existing key
-    const secretKey = await jose.JWK.createKey('RSA', 2048, key.toJSON());
+const createSecretKey = async () => {
+  // const keyId: any = process.env.PRIMARY_SECRET_KEY_ID;
+  // const secKey: any = process.env.PRIMARY_SECRET_KEY;
+  const key = {
+    use: "sig",
+    alg: "RS256",
+    n: "r54td3hTv87IwUNhdc-bYLIny4tBVcasvdSd7lbJILg58C4DJ0RJPczXd_rlfzzYGvgpt3Okf_anJd5aah196P3bqwVDdelcDYAhuajBzn40QjOBPefvdD5zSo18i7OtG7nhAhRSEGe6Pjzpck3wAogqYcDgkF1BzTsRB-DkxprsYhp5pmL5RnX-6EYP5t2m9jJ-_oP9v1yvZkT5UPb2IwOk5GDllRPbvp-aJW_RM18ITU3qIbkwSTs1gJGFWO7jwnxT0QBaFD8a8aev1tmR50ehK-Sz2ORtvuWBxbzTqXXL39qgNJaYwZyW-2040vvuZnaGribcxT83t3cJlQdMxw",
+    kid: "acda360fb36cd15ff83af83e173f47ffc36d111c",
+    kty: "RSA",
+    e: "AQAB",
+  };
+  const secretKey = await jose.JWK.createKey("RSA", 2048, key);
 
-    // Create a signer using the secret key
-    const signer = jose.JWS.createSign({ format: 'compact' }, secretKey);
-    const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
-    const paylod = {
-      type: 'authToken',
-      value: email,
-      exp,
-    };
-    // Update the signer with the payload
-    const token = await signer
-      .update(JSON.stringify(key))
-      .update(JSON.stringify({ ...paylod }))
-      .final();
-    // return { token: token };
-    const refreshToken = getRefreshToken(secretKey, email);
-
-    // await verifyToken(secretKey, token);
-    return { token, refreshToken };
-  } catch (error) {
-    console.error('Error:', error);
-  }
+  return { secretKey, key };
 };
 
-// async function verifyToken(
-//   secretKey: string | object | undefined,
-//   token: jose.JWS.CreateSignResult
-// ) {
-//   const verifier = jose.JWS.createVerify(secretKey);
+const memoizedCreateSecretKey = memoize(createSecretKey);
 
-//   const result1 = await verifier.verify(token.toString());
-// }
+const getToken = async (payload: object) => {
+  const { secretKey } = await memoizedCreateSecretKey();
+  const signer = jose.JWS.createSign({ format: "compact" }, secretKey);
+  // Update the signer with the payload
+  const token = await signer.update(JSON.stringify({ ...payload })).final();
+  return token;
+};
 
-export const getRefreshToken = async (
-  secretKey: jose.JWK.Key | jose.JWK.Key[],
-  email: any
-) => {
-  const refreshTokenSigner = jose.JWS.createSign(
-    { format: 'compact' },
-    secretKey
-  );
-  const refreshExpiresIn = 604800; //7 days in seconds
-  // Set the payload and header for Refresh Token
-  //   const refreshTokenPayload = JSON.stringify(email);
-  const refreshTokenHeader = {
-    value: email,
-    alg: 'RS256',
-    typ: 'RefreshToken',
-    exp: Math.floor(Date.now() / 1000) + refreshExpiresIn,
+export const createTokens = async (payload: any) => {
+  !("isLoggedIn" in payload)
+    ? Object.assign(payload, { isLoggedIn: false })
+    : "";
+  !("exp" in payload)
+    ? Object.assign(payload, { exp: Math.floor(Date.now() / 1000) + 3600 })
+    : "";
+  const token = await getToken(payload);
+  return { token };
+};
+
+export const createRefreshTokens = async (payload: any) => {
+  const exp = Math.floor(Date.now() / 1000) + 604800; // valid for 7 days
+  const refreshToken = await getToken({
+    isLoggedIn: true,
+    exp,
+    type: "refreshToken",
+    value: payload.value,
+  });
+  return { refreshToken };
+};
+
+// export const verifyToken = async (token: string) => {
+//   try {
+//     const { secretKey } = await memoizedCreateSecretKey();
+//     const result = await jose.JWS.createVerify(secretKey).verify(token);
+//     const payload = JSON.parse(result.payload.toString());
+//     console.log(payload, "payloaddd");
+//     const currentTimestamp = Math.floor(Date.now() / 1000);
+//     // TODO: I think verify does check for token expiry time and we don't have to. Please confirm this and if it does, remove our own check.
+//     // Explaination : Tried same but was verifying expired token as well
+//     if (payload && payload.exp > currentTimestamp) {
+//       console.log("in payload"+ payload);
+      
+//       return payload;
+//     } else {
+//       return false;
+//     }
+//   } catch (error) {
+//     console.error("Error:", error);
+//     throw new Error("No user found ..");
+//   }
+// };
+
+export const decodeToken =async(token:any)=>{
+  try{
+  const { secretKey } = await memoizedCreateSecretKey();
+  const result = await jose.JWS.createVerify(secretKey).verify(token);
+  const payload = JSON.parse(result.payload.toString());
+  return payload
+  }catch(error){
+  return error
+  }
+}
+export const verifyToken = async (req:Request,res:Response,next:NextFunction) => {
+    try {
+      const token = getTokens(req.headers)
+      const payload= await decodeToken(token)
+      
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      if (payload && payload.exp > currentTimestamp) {
+        console.log("in payload"+ payload);
+       next()
+      } else {
+        return res.status(401).json({ success: false, message:'Token has expired'  }); 
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(401).json({ success: false, message:error });
+    }
   };
 
-  // Sign the Refresh Token
-  const refreshToken = await refreshTokenSigner
-    .update(JSON.stringify(refreshTokenHeader))
-    // .update(refreshTokenPayload)
-    .final();
-  return refreshToken;
-};
+export const getTokens = (headers: any) => {
+    const bearerToken = headers.authorization;
+    // console.log("bearerToken==>"+bearerToken)
+    if (!bearerToken || !bearerToken.startsWith('Bearer ')) {
+     
+      return null;
+    }
+    return bearerToken.slice(7);
+  };
 
-export default createTokens;

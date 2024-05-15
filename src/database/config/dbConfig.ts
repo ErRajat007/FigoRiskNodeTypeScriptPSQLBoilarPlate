@@ -1,16 +1,20 @@
-import { Sequelize } from "sequelize";
+import * as Config from './config.json';
+import { Sequelize } from 'sequelize';
 
-// Connection parameters
-export const sequelize = new Sequelize('FIGO_Risk','postgres', 'Qwe@123', {dialect : 'postgres', host : 'localhost', port : 5432})
+const { username, host, database, password, port } = Config.development;
 
-sequelize.authenticate().then(() => {
-    console.log(`Database connected to discover`)
-}).catch((err:any) => {
-    console.log(err)
-})
+export const sequelize = new Sequelize(database, username, password, {
+  host,
+  port,
+  dialect: 'postgres',
+});
 
-
-
-
-// with URI
-// const sequelize = new Sequelize(process.env.POSTGRESQL_DB_URI)
+// Test the connection
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
+  })
+  .catch((err) => {
+    console.error('Unable to connect to the database:', err);
+  });

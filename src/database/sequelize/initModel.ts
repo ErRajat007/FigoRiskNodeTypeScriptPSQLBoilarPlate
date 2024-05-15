@@ -1,8 +1,9 @@
 import { Sequelize } from 'sequelize';
 import { AssetTypeModel, initAssetTypeModel } from './assetTypeModel';
+import { BusinessUnitModel, initBusinessUnitModel } from './businessUnitModel';
 import { initAssetValueModel, AssetValueModel } from './assetValueModel';
 import { AvailabilityScaleModel, initAvailabilityScaleModel } from './availabilityScaleModel';
-import { BusinessUnitModel, initBusinessUnitModel } from './businessUnitModel';
+
 import { ConfidentialityScaleModel, initConfidentialityScaleModel } from './confidentialityScaleModel';
 import {
   ControlCategoryModel,
@@ -27,6 +28,7 @@ import { initSubEntityModel, SubEntityModel } from './subEntityModel';
 import { initThreatsModel, ThreatsModel } from './threatsModel';
 import { initThreatsValueModel, ThreatsValueModel } from './threatsValeModel';
 import { initUsersModel } from './userModel';
+import {initAssetModel } from './assetModel'
 import { initVulnerabilityLevelModel, VulnerabilityLevelModel } from './vulnerabilityLevelModel';
 
 /**
@@ -34,6 +36,7 @@ import { initVulnerabilityLevelModel, VulnerabilityLevelModel } from './vulnerab
  * @param {Sequelize} sequelize - The Sequelize instance.
  */
 export function initModel(sequelize: Sequelize) {
+  initAssetModel(sequelize)
   initLoginModel(sequelize);
   initUsersModel(sequelize);
   initEntityModel(sequelize);

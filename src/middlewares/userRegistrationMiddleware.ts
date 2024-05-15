@@ -33,8 +33,7 @@ const validateRegistrationData = (
   next: NextFunction
 ) => {
   try {
-    console.log(req.body,"qqqqqq", req);
-    registrationSchema.parse(req.body.json_data);
+    registrationSchema.parse(req.body);
     next();
   } catch (err: any) {
     console.info('Validation Error : ', err);

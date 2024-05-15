@@ -7,10 +7,9 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "start": "nodemon src/index.ts",
-    "generate-commit-id": "node generate-commit-id.js",
     "prebuild": "npm run generate-commit-id",
     "build": "tsc",
-    "serve": "node dist/index.js",
+    "serve": "node dist/index.ts",
     "test": "mocha --require ts-node/register 'tests/**/*.spec.ts'",
     "lint": "eslint --ext .ts src/",
     "lint:fix": "npx eslint --ext .ts src/ --fix",

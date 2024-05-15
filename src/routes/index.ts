@@ -1,6 +1,8 @@
 import { Express } from 'express';
 import loginRoutes from './loginroutes';
-import userRoutes from '../routes/userRoutes';
+import userRoutes from './userRoutes'
+import commonRouted from '../routes/commonRoutes';
+
 
 /**
  *
@@ -10,4 +12,6 @@ import userRoutes from '../routes/userRoutes';
 export function setupRoutes(app: Express) {
   app.use('/api', loginRoutes);
   app.use('/api', userRoutes);
+  app.use('/common', commonRouted);
+  // dfgfg
 }

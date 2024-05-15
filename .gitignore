@@ -1,4 +1,8 @@
 node_modules/
 dist/
 coverage/
-
+.env
+<<<<<<< HEAD
+=======
+secret*.yaml
+>>>>>>> 67c2391fc85c2e8dddb1a20abe9995e1a9bffef3

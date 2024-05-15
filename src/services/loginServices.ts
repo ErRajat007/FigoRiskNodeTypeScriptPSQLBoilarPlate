@@ -1,7 +1,10 @@
-import { UsersModel } from '../database/sequelize/userModel';
-import createTokens from '../utils/createTokens';
-import { generateSalt, hashPassword } from '../utils/hashedPassword';
-const { Sequelize } = require('sequelize');
+import { UsersModel } from "../database/sequelize/userModel";
+import {
+  createRefreshTokens,
+  createTokens
+} from "../utils/createTokens";
+import { generateSalt, hashPassword } from "../utils/hashedPassword";
+const { Sequelize } = require("sequelize");
 
 export const updatePassword = async (req: any) => {
   const user: any = await UsersModel.findOne({
@@ -12,36 +15,45 @@ export const updatePassword = async (req: any) => {
   if (user) {
     user.update({ password: hashedpassword, salt: salt });
   } else {
-    throw 'user not found';
+    throw "user not found";
   }
 };
 
 export const loginUserService = async (email: string, password: string) => {
   const errorObject = {
     success: false,
-    message: 'Invalid credentials',
+    message: "Invalid credentials",
     status: 400,
   };
-  const user = await UsersModel.findOne({
-    where: { email: email.toLowerCase() },
+  // const user = await UsersModel.findOne({
+  //   where: { email: email.toLowerCase() },
+  // });
+  // if (!user) {
+  //   throw { success: false, status: 404, message: "user not found" };
+  // }
+  // const salt = user.dataValues.salt;
+  // const hashedPassword = hashPassword(password, salt);
+  // if (hashedPassword !== user.dataValues.password) {
+  //   throw errorObject;
+  // }
+
+  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24; // valid for 1 day
+  const { token }: any = await createTokens({
+    isLoggedIn: true,
+    type: "authToken",
+    value: email,
+    exp,
   });
-  if (!user) {
-    throw { success: false, status: 404, message: 'user not found' };
-  }
-  const salt = user.dataValues.salt;
-  const hashedPassword = hashPassword(password, salt);
-  if (hashedPassword !== user.dataValues.password) {
-    throw errorObject;
-  }
-  // const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24; // valid for 1 day
-  const { token, refreshToken }: any = await createTokens({
-    email,
+  const { refreshToken } = await createRefreshTokens({
+    value: email,
   });
-  const result = await user.update({
-    token,
-    refreshToken,
-  });
-  if (result)
+
+  // const result = await user.update({
+  //   token,
+  //   refreshToken,
+  // });
+  // verifyToken(refreshToken.toString());
+ 
     return {
       success: true,
       token,

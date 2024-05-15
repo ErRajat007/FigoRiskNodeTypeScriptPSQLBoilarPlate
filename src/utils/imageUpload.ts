@@ -1,18 +1,17 @@
-import path from "path";
+import path from 'path';
 
 const multer = require('multer');
 
 const storageEngine = multer.diskStorage({
-  destination: "./public/images",
+  destination: './public/images',
   filename: (
     _req: any,
     file: { originalname: any },
     cb: (arg0: null, arg1: string) => void
   ) => {
-    cb(null, `${Date.now()}--${file.originalname}`);
+    cb(null, `${Date.now()}_${file.originalname}`);
   },
 });
-
 
 const checkFileType = function (
   file: { originalname: any; mimetype: string },
@@ -40,13 +39,3 @@ export const upload = multer({
     checkFileType(file, cb);
   },
 });
-
-
-
-// app.post('/single', upload.single('image'), (req: any, res) => {
-//   if (req.file) {
-//     res.send('Single file uploaded successfully');
-//   } else {
-//     res.status(400).send('Please upload a valid image');
-//   }
-// });
