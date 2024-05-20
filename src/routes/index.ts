@@ -10,8 +10,8 @@ import commonRouted from './commonRoutes';
  */
 
 export function setupRoutes(app: Express) {
-  app.use('/api', loginRoutes);
   app.use('/api', userRoutes);
+  app.use('/api', loginRoutes);
   app.use('/common', commonRouted);
   // dfgfg
 }

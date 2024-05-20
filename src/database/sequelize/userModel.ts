@@ -12,11 +12,16 @@ export class UsersModel extends Model {
 export function initUsersModel(sequelize: Sequelize) {
   UsersModel.init(
     {
+      // id:{
+         // type: DataTypes.UUID,
+        // defaultValue: UUIDV4,
+        // primaryKey: true,
+        // comment: 'Auto increment primary key',
+      // }
       id: {
-        type: DataTypes.UUID,
-        defaultValue: UUIDV4,
+        type: DataTypes.INTEGER,
         primaryKey: true,
-        comment: 'Auto increment primary key',
+        autoIncrement: true,
       },
       email: {
         type: DataTypes.STRING,
@@ -42,25 +47,33 @@ export function initUsersModel(sequelize: Sequelize) {
         allowNull: false,
         unique: true,
       },
+      token: {
+        type: DataTypes.TEXT,
+        defaultValue: '',  
+      },
+      refreshToken: {
+        type: DataTypes.TEXT,
+        defaultValue: '',
+      },
       displayPicture: {
         type: DataTypes.STRING,
         allowNull: true,
         unique: true,
       },
       userType: {
-        type: DataTypes.ENUM('Admin', 'User', 'Super Admin'),
+        type: DataTypes.ENUM('admin', 'user', 'guest'),
         allowNull: false,
         defaultValue: 'User',
       },
       status: {
-        type: DataTypes.ENUM('Active', 'Disabled'),
+        type: DataTypes.ENUM('active', 'inactive', 'pending'),
         allowNull: false,
         defaultValue: 'Active',
       },
       role: {
-        type: DataTypes.ENUM('Maker', 'Checker', 'Auditor'),
+        type: DataTypes.ENUM('manager', 'employee', 'contractor'),
         allowNull: false,
-        defaultValue: 'Maker',
+        defaultValue: 'employee',
       },
       authentication: {
         type: DataTypes.ENUM('SSO', 'Application'),

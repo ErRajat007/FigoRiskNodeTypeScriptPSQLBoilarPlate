@@ -41,61 +41,40 @@ export const createTokens = async (payload: any) => {
 };
 
 export const createRefreshTokens = async (payload: any) => {
-  const exp = Math.floor(Date.now() / 1000) + 604800; // valid for 7 days
+  // const exp = Math.floor(Date.now() / 1000) + 604800; // valid for 7 days
+  const exp = Math.floor(Date.now() / 1000) + 60; // Add 60 seconds (1 minute)
   const refreshToken = await getToken({
     isLoggedIn: true,
     exp,
-    type: "refreshToken",
-    value: payload.value,
+    type: 'refreshToken',
+    AuthEmail: payload.AuthEmail,
+    userID: payload.userID,
   });
   return { refreshToken };
 };
 
-// export const verifyToken = async (token: string) => {
-//   try {
-//     const { secretKey } = await memoizedCreateSecretKey();
-//     const result = await jose.JWS.createVerify(secretKey).verify(token);
-//     const payload = JSON.parse(result.payload.toString());
-//     console.log(payload, "payloaddd");
-//     const currentTimestamp = Math.floor(Date.now() / 1000);
-//     // TODO: I think verify does check for token expiry time and we don't have to. Please confirm this and if it does, remove our own check.
-//     // Explaination : Tried same but was verifying expired token as well
-//     if (payload && payload.exp > currentTimestamp) {
-//       console.log("in payload"+ payload);
-      
-//       return payload;
-//     } else {
-//       return false;
-//     }
-//   } catch (error) {
-//     console.error("Error:", error);
-//     throw new Error("No user found ..");
-//   }
-// };
 
 export const decodeToken =async(token:any)=>{
   try{
   const { secretKey } = await memoizedCreateSecretKey();
   const result = await jose.JWS.createVerify(secretKey).verify(token);
   const payload = JSON.parse(result.payload.toString());
-  return payload
+  return payload 
   }catch(error){
-  return error
+  return error;
   }
 }
-export const verifyToken = async (req:Request,res:Response,next:NextFunction) => {
+export const verifyToken = async (userToken:any,res:Response) => {
     try {
-      const token = getTokens(req.headers)
-      const payload= await decodeToken(token)
-      
+      // const token = getTokens(userToken);
+      const payload = await decodeToken(userToken);
       const currentTimestamp = Math.floor(Date.now() / 1000);
       if (payload && payload.exp > currentTimestamp) {
-        console.log("in payload"+ payload);
-       next()
+        return {success:true,data:payload};
       } else {
-        return res.status(401).json({ success: false, message:'Token has expired'  }); 
+        return {success:false,data:''}; 
       }
-    } catch (error) {
+    } catch (error) { 
       console.error("Error:", error);
       return res.status(401).json({ success: false, message:error });
     }
@@ -105,7 +84,6 @@ export const getTokens = (headers: any) => {
     const bearerToken = headers.authorization;
     // console.log("bearerToken==>"+bearerToken)
     if (!bearerToken || !bearerToken.startsWith('Bearer ')) {
-     
       return null;
     }
     return bearerToken.slice(7);

@@ -3,32 +3,22 @@ import { AssetTypeModel, initAssetTypeModel } from './assetTypeModel';
 import { BusinessUnitModel, initBusinessUnitModel } from './businessUnitModel';
 import { initAssetValueModel, AssetValueModel } from './assetValueModel';
 import { AvailabilityScaleModel, initAvailabilityScaleModel } from './availabilityScaleModel';
-
 import { ConfidentialityScaleModel, initConfidentialityScaleModel } from './confidentialityScaleModel';
-import {
-  ControlCategoryModel,
-  initControlCategoryModel
-} from './controlCategoryModel';
+import { ControlCategoryModel,  initControlCategoryModel} from './controlCategoryModel';
 import { DepartmentModel, initDepartmentModel } from './departmentModel';
 import { EntityModel, initEntityModel } from './entityModel';
-import {
-  InherentRiskModel,
-  initInherentRiskModel
-} from './inherentRiskValueModel';
+import { InherentRiskModel,initInherentRiskModel} from './inherentRiskValueModel';
 import { IntegrityScaleModel, initIntegrityScaleModel } from './integrityScaleModel';
 import { initLocationModel, LocationModel } from './locationModel';
 import { initLoginModel } from './loginModel';
 import { initModulesModel, ModulesModel } from './modulesModel';
 import { initProbabilityModel, ProbabilityModel } from './probabilityModel';
-import {
-  initResidualRiskModel,
-  ResidualRiskModel
-} from './residualRiskValueModel.ts';
+import { initResidualRiskModel, ResidualRiskModel} from './residualRiskValueModel.ts';
 import { initSubEntityModel, SubEntityModel } from './subEntityModel';
 import { initThreatsModel, ThreatsModel } from './threatsModel';
 import { initThreatsValueModel, ThreatsValueModel } from './threatsValeModel';
-import { initUsersModel } from './userModel';
-import {initAssetModel } from './assetModel'
+import { initUsersModel,UsersModel } from './userModel';
+import { initAssetModel } from './assetModel'
 import { initVulnerabilityLevelModel, VulnerabilityLevelModel } from './vulnerabilityLevelModel';
 
 /**
@@ -59,9 +49,18 @@ export function initModel(sequelize: Sequelize) {
   initAvailabilityScaleModel(sequelize);
   initModulesModel(sequelize);
 
+  //  UsersModel.sync({ alter: true })
+  //    .then(() => {
+  //      console.log('UsersModel table synced');
+  //    })
+  //    .catch((error) => {
+  //      console.error('Error syncing UsersModel table:', error);
+  //    });
+
   EntityModel.hasMany(ThreatsModel, {
     onDelete: 'CASCADE',
   });
+
   EntityModel.hasMany(ControlCategoryModel, {
     onDelete: 'CASCADE',
   });

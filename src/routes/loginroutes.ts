@@ -1,11 +1,12 @@
 import express from 'express';
-import { changePassword, getUserLogin,logOutController} from '../controllers/loginController';
-
-import * as p from '../middlewares/loginMiddleware';
+import { changePassword, generateAccessT, getUserLogin,logOutController} from '../controllers/loginController';
+import { auth } from '../middlewares/auth/auth';
+import { validationLoginData,validationChangePassword, validationAccessToken } from '../middlewares/validation';
+import {validationLogout} from '../middlewares/validation';
 
 const router = express.Router();
-router.post('/login', p.loginMiddleware, getUserLogin);
-router.get('/logout',logOutController)
-router.post('/changePassword', changePassword);
-
+router.post('/login', validationLoginData, getUserLogin);
+router.get('/logout', validationLogout,auth, logOutController);
+router.post('/changePassword', validationChangePassword, auth, changePassword);
+router.post('/generateAT', validationAccessToken, auth,generateAccessT);
 export default router;

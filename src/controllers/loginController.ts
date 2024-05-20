@@ -1,29 +1,33 @@
 
 import { Request, Response, NextFunction } from 'express';
+import { IRequest } from '../middlewares/auth/auth';
+
+interface token{
+  verifiedToken: string; // Assuming verifiedToken is always a string
+}
 import {
+  generateAccessToken,
     loginUserService,
     updatePassword
 } from '../services/loginServices';
 import {getTokens} from '../utils/createTokens'
+import logoutUserService from '../services/logoutUserService';
+
 export const getUserLogin = async (req: Request, res: Response) => {
-  console.log('in get userlogin', req?.body);
   try {
     const { email, password } = req.body;
-    const data: any = await loginUserService(email, password);
-    if (data.success) res.status(200).send(data);
-    else res.status(401).send(data);
+    const data = await loginUserService(email, password);
+   return res.status(data.status).json({success:data.success,message:data.message,data:data.data});
   } catch (err) {
     res.status(400).send({ success: false, err });
   }
 };
 
 
-export const changePassword = async (_req: Request, res: Response) => {
+export const changePassword = async (req: IRequest, res: Response) => {
   try {
-    const data = await updatePassword(_req);
-    return res
-      .status(200)
-      .send({ message: 'Password Changed successfully', data: data });
+    const data = await updatePassword(req);
+   return res.status(data.status).json({success:data.success,message:data.message})
   } catch (err) {
     console.log('***', err);
   }
@@ -33,12 +37,15 @@ export const changePassword = async (_req: Request, res: Response) => {
 // Token blacklist to store revoked tokens
 const tokenBlacklist = new Set();
 
-export const logOutController = async (req: Request, res: Response) => {
+export const logOutController = async (req: IRequest, res: Response) => {
     try {
-       const token= getTokens(req.headers)
-       if (!token) return res.status(401).json({success:false, message: 'No token provided' });
-       tokenBlacklist.add(token);
-       res.status(200).json({success: true, message: 'Logout successful' });
+        const userId:any= req.userid
+        if(!userId){
+          return res.json({success:false,message:"User Not Found"})
+        }
+      const result: any = await logoutUserService(userId);
+      if (result.success) res.status(200).send(result);
+      else res.status(401).send(result);
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ success: false, message: 'Internal server error' });
@@ -54,3 +61,12 @@ export const checkToken =async (req:Request, res:Response, next:NextFunction) =>
     }
     next();
   };
+
+export const generateAccessT = async (req: IRequest, res: Response) => {
+  try {
+    const data:any = await generateAccessToken(req)
+    return res.status(data.status ).json({success:data.success,message:data.message,data:data.data})
+  }catch (err) {
+    return res.status(400).json({ success: false, message: err });
+  }
+};
